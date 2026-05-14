@@ -1,23 +1,23 @@
-name名称：将 Bitnami 镜像同步到 ACR 以供 GitLab 使用   名字: Sync Bitnami Images to ACR for GitLab
+name: Sync Bitnami Images to ACR for GitLab
 
-on:   :
+on:
   workflow_dispatch:
 
-jobs:   工作:
-  sync:   同步:
-    runs-on: ubuntu-latest   运行于：ubuntu-latest
-    steps:   步骤:
-      - name: Login to ACR   - 名称：登录 ACR
-        uses: docker/login-action@v3使用：docker/login-action@v3
-        with:   :
-          registry: crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com注册表：crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com
-          username: ${{ secrets.ACR_USERNAME }}用户名：${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}密码：${{ secrets.ACR_PASSWORD }}
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Sync bitnami images from bitnamilegacy名称：从 bitnamilegacy 同步 Bitnami 镜像
-        run: |   运行:|
-          set -e   设置- e
-          ACR="crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab"ACR="crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab"
+      - name: Sync bitnami images from bitnamilegacy
+        run: |
+          set -e
+          ACR="crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab"
 
           # GitLab Helm Chart 8.0.0 - exact bitnami image tags from chart values
           IMAGES=(
@@ -30,12 +30,12 @@ jobs:   工作:
             "bitnamilegacy/bitnami-shell:11-debian-11-r11:bitnami-shell:11-debian-11-r11"
           )
 
-          echo "=========================================="echo "=========================================="
+          echo "=========================================="
           echo "Syncing ${#IMAGES[@]} images to ACR"
-          echo "=========================================="echo "=========================================="
+          echo "=========================================="
 
           FAILED=()
-          SUCCESS=0   成功= 0
+          SUCCESS=0
 
           for ITEM in "${IMAGES[@]}"; do
             SRC=$(echo "$ITEM" | cut -d: -f1-3)
@@ -43,33 +43,33 @@ jobs:   工作:
             DST_TAG=$(echo "$ITEM" | cut -d: -f5-)
             DST="${ACR}/${DST_NAME}:${DST_TAG}"
 
-            echo ""   echo ""
+            echo ""
             echo ">>> Pulling: docker.io/${SRC}"
-            if docker pull "docker.io/${SRC}"; then如果从“docker.io/${SRC}”拉取 Docker 镜像成功；那么
+            if docker pull "docker.io/${SRC}"; then
               echo ">>> Tagging: ${DST}"
-              docker tag "docker.io/${SRC}" "${DST}"将“docker.io/${SRC}”标记为“${DST}”
+              docker tag "docker.io/${SRC}" "${DST}"
               echo ">>> Pushing: ${DST}"
-              if docker push "${DST}"; then如果成功执行 `docker push "${DST}"` 命令；那么
+              if docker push "${DST}"; then
                 echo ">>> OK: ${SRC} -> ${DST}"
                 SUCCESS=$((SUCCESS + 1))
-              else   其他
+              else
                 echo ">>> FAIL push: ${DST}"
                 FAILED+=("${SRC}")
               fi
-            else   其他
+            else
               echo ">>> FAIL pull: ${SRC}"
               FAILED+=("${SRC}")
             fi
-          done   完成
+          done
 
-          echo ""   echo ""
-          echo "=========================================="echo "=========================================="
+          echo ""
+          echo "=========================================="
           echo "Done: ${SUCCESS} ok, ${#FAILED[@]} failed"
-          if [ ${#FAILED[@]} -gt 0 ]; then如果 [ ${#FAILED[@]} -gt 0 ]； 那么
+          if [ ${#FAILED[@]} -gt 0 ]; then
             echo "Failed images:"
-            for f in "${FAILED[@]}"; do对于“${FAILED[@]}”中的每个 f ；做
-              echo "  - ${f}"Echo & " - ${f}& "；
-            done   完成
-            exit 1   出口1
+            for f in "${FAILED[@]}"; do
+              echo "  - ${f}"
+            done
+            exit 1
           fi
-          echo "=========================================="echo "=========================================="
+          echo "=========================================="
