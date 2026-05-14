@@ -132,14 +132,4 @@ jobs:
           docker tag docker.io/bitnamilegacy/mysql:8.4.0 $R/mysql:8.4.0
           docker push $R/mysql:8.4.0
 
-          echo "=== Stage 10: Trivy DB ==="
-
-          docker pull docker.io/aquasec/trivy-db:2
-          docker tag docker.io/aquasec/trivy-db:2 $R/trivy-db:2
-          docker push $R/trivy-db:2
-
-          docker pull docker.io/aquasec/trivy-java-db:1
-          docker tag docker.io/aquasec/trivy-java-db:1 $R/trivy-java-db:1
-          docker push $R/trivy-java-db:1
-
           echo "=== All images synced successfully ==="
