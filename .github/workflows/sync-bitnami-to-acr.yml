@@ -1,4 +1,4 @@
-name: Sync Bitnami Images to ACR for GitLab
+name: Sync All Images to ACR for Cloud Native Platform
 
 on:
   workflow_dispatch:
@@ -13,10 +13,13 @@ jobs:
           registry: crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
-      - name: Pull and push images
+
+      - name: Sync all images
         run: |
           set -e
           R="crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/xb_xx"
+
+          echo "=== Stage 4: GitLab bitnami images ==="
 
           docker pull docker.io/bitnamilegacy/postgresql:15.3.0-debian-11-r0
           docker tag docker.io/bitnamilegacy/postgresql:15.3.0-debian-11-r0 $R/postgresql:15.3.0-debian-11-r0
@@ -46,4 +49,98 @@ jobs:
           docker tag registry.cn-beijing.aliyuncs.com/blice_haiwai/bitnami-shell:11-debian-11-r11 $R/bitnami-shell:11-debian-11-r11
           docker push $R/bitnami-shell:11-debian-11-r11
 
-          echo "All 7 images synced successfully"
+          echo "=== Stage 4: Harbor images ==="
+
+          docker pull docker.io/goharbor/harbor-core:v2.10.0
+          docker tag docker.io/goharbor/harbor-core:v2.10.0 $R/harbor-core:v2.10.0
+          docker push $R/harbor-core:v2.10.0
+
+          docker pull docker.io/goharbor/harbor-portal:v2.10.0
+          docker tag docker.io/goharbor/harbor-portal:v2.10.0 $R/harbor-portal:v2.10.0
+          docker push $R/harbor-portal:v2.10.0
+
+          docker pull docker.io/goharbor/harbor-registryctl:v2.10.0
+          docker tag docker.io/goharbor/harbor-registryctl:v2.10.0 $R/harbor-registryctl:v2.10.0
+          docker push $R/harbor-registryctl:v2.10.0
+
+          docker pull docker.io/goharbor/registry-photon:v2.10.0
+          docker tag docker.io/goharbor/registry-photon:v2.10.0 $R/registry-photon:v2.10.0
+          docker push $R/registry-photon:v2.10.0
+
+          docker pull docker.io/goharbor/trivy-adapter-photon:v2.10.0
+          docker tag docker.io/goharbor/trivy-adapter-photon:v2.10.0 $R/trivy-adapter-photon:v2.10.0
+          docker push $R/trivy-adapter-photon:v2.10.0
+
+          docker pull docker.io/goharbor/harbor-db:v2.10.0
+          docker tag docker.io/goharbor/harbor-db:v2.10.0 $R/harbor-db:v2.10.0
+          docker push $R/harbor-db:v2.10.0
+
+          docker pull docker.io/goharbor/redis-photon:v2.10.0
+          docker tag docker.io/goharbor/redis-photon:v2.10.0 $R/redis-photon:v2.10.0
+          docker push $R/redis-photon:v2.10.0
+
+          echo "=== Stage 4: Jenkins ==="
+
+          docker pull docker.io/jenkins/jenkins:2.440.1-lts
+          docker tag docker.io/jenkins/jenkins:2.440.1-lts $R/jenkins:2.440.1-lts
+          docker push $R/jenkins:2.440.1-lts
+
+          docker pull docker.io/jenkins/inbound-agent:3261.v9a6a_5e9a_a_1ec
+          docker tag docker.io/jenkins/inbound-agent:3261.v9a6a_5e9a_a_1ec $R/jenkins-inbound-agent:3261.v9a6a_5e9a_a_1ec
+          docker push $R/jenkins-inbound-agent:3261.v9a6a_5e9a_a_1ec
+
+          echo "=== Stage 6: CI/CD kaniko + kubectl ==="
+
+          docker pull gcr.io/kaniko-project/executor:latest
+          docker tag gcr.io/kaniko-project/executor:latest $R/kaniko-executor:latest
+          docker push $R/kaniko-executor:latest
+
+          docker pull docker.io/bitnami/kubectl:1.31
+          docker tag docker.io/bitnami/kubectl:1.31 $R/kubectl:1.31
+          docker push $R/kubectl:1.31
+
+          echo "=== Stage 7: Monitoring (kube-prometheus-stack) ==="
+
+          docker pull docker.io/bitnamilegacy/prometheus:2.50.0
+          docker tag docker.io/bitnamilegacy/prometheus:2.50.0 $R/prometheus:2.50.0
+          docker push $R/prometheus:2.50.0
+
+          docker pull docker.io/bitnamilegacy/grafana:10.3.1
+          docker tag docker.io/bitnamilegacy/grafana:10.3.1 $R/grafana:10.3.1
+          docker push $R/grafana:10.3.1
+
+          docker pull docker.io/bitnamilegacy/kube-state-metrics:2.12.0
+          docker tag docker.io/bitnamilegacy/kube-state-metrics:2.12.0 $R/kube-state-metrics:2.12.0
+          docker push $R/kube-state-metrics:2.12.0
+
+          docker pull docker.io/bitnamilegacy/node-exporter:1.8.1
+          docker tag docker.io/bitnamilegacy/node-exporter:1.8.1 $R/node-exporter:1.8.1
+          docker push $R/node-exporter:1.8.1
+
+          echo "=== Stage 8: Logging (EFK) ==="
+
+          docker pull docker.io/fluent/fluentd-kubernetes-daemonset:v1.16-debian-elasticsearch8-1
+          docker tag docker.io/fluent/fluentd-kubernetes-daemonset:v1.16-debian-elasticsearch8-1 $R/fluentd:v1.16-debian-elasticsearch8-1
+          docker push $R/fluentd:v1.16-debian-elasticsearch8-1
+
+          docker pull docker.io/kiwigrid/k8s-sidecar:1.25.3
+          docker tag docker.io/kiwigrid/k8s-sidecar:1.25.3 $R/k8s-sidecar:1.25.3
+          docker push $R/k8s-sidecar:1.25.3
+
+          echo "=== Stage 9: HA MySQL + Redis ==="
+
+          docker pull docker.io/bitnamilegacy/mysql:8.4.0
+          docker tag docker.io/bitnamilegacy/mysql:8.4.0 $R/mysql:8.4.0
+          docker push $R/mysql:8.4.0
+
+          echo "=== Stage 10: Trivy DB ==="
+
+          docker pull docker.io/aquasec/trivy-db:2
+          docker tag docker.io/aquasec/trivy-db:2 $R/trivy-db:2
+          docker push $R/trivy-db:2
+
+          docker pull docker.io/aquasec/trivy-java-db:1
+          docker tag docker.io/aquasec/trivy-java-db:1 $R/trivy-java-db:1
+          docker push $R/trivy-java-db:1
+
+          echo "=== All images synced successfully ==="
