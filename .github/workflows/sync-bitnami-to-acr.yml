@@ -94,9 +94,9 @@ jobs:
           docker tag gcr.io/kaniko-project/executor:latest $R/kaniko-executor:latest
           docker push $R/kaniko-executor:latest
 
-          docker pull docker.io/bitnami/kubectl:1.31
-          docker tag docker.io/bitnami/kubectl:1.31 $R/kubectl:1.31
-          docker push $R/kubectl:1.31
+          docker pull docker.io/bitnami/kubectl:latest
+          docker tag docker.io/bitnami/kubectl:latest $R/kubectl:latest
+          docker push $R/kubectl:latest
 
           echo "=== Stage 7: Monitoring (kube-prometheus-stack) ==="
 
