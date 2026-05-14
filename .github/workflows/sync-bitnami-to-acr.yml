@@ -1,4 +1,4 @@
-name   名字: Sync Bitnami Images to ACR for GitLab
+name名称：将 Bitnami 镜像同步到 ACR 以供 GitLab 使用   名字: Sync Bitnami Images to ACR for GitLab
 
 on:   :
   workflow_dispatch:
@@ -14,82 +14,62 @@ jobs:   工作:
           username: ${{ secrets.ACR_USERNAME }}用户名：${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}密码：${{ secrets.ACR_PASSWORD }}
 
-      - name: Sync bitnami images from bitnamilegacy
+      - name: Sync bitnami images from bitnamilegacy名称：从 bitnamilegacy 同步 Bitnami 镜像
         run: |   运行:|
-          set -e
+          set -e   设置- e
+          ACR="crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab"ACR="crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab"
 
-          ACR="crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab"
-
-          # ============================================================
-          # GitLab Helm Chart 8.0.0 所需的 bitnami 镜像
-          # 来源: bitnamilegacy (Bitnami 2025.8.28 策略变更后版本标签迁移至此)
-          # ============================================================
-
-          declare -A IMAGES=(
-            # --- PostgreSQL (bitnami chart 12.5.2) ---
-            ["bitnamilegacy/postgresql:16.1.0-debian-12-r14"]="postgresql:16.1.0-debian-12-r14"
-            ["bitnamilegacy/postgresql:16.1.0-debian-12-r14"]="postgresql:16.1.0-debian-12-r14"
-
-            # --- Redis (bitnami chart 16.13.2) ---
-            ["bitnamilegacy/redis:7.4.2-debian-12-r14"]="redis:7.4.2-debian-12-r14"
-
-            # --- Redis Sentinel (redis chart 依赖) ---
-            ["bitnamilegacy/redis-sentinel:7.4.2-debian-12-r14"]="redis-sentinel:7.4.2-debian-12-r14"
-
-            # --- MinIO (GitLab Registry 对象存储) ---
-            ["bitnamilegacy/minio:2024.11.7-debian-12-r0"]="minio:2024.11.7-debian-12-r0"
-
-            # --- Registry (GitLab Container Registry) ---
-            ["bitnamilegacy/docker-registry:2.8.3-debian-12-r6"]="docker-registry:2.8.3-debian-12-r6"
-
-            # --- os-shell (bitnami 通用 initContainer) ---
-            ["bitnamilegacy/os-shell:12-debian-12-r24"]="os-shell:12-debian-12-r24"
-
-            # --- postgres-exporter (PostgreSQL 监控指标) ---
-            ["bitnamilegacy/postgres-exporter:0.15.0-debian-12-r18"]="postgres-exporter:0.15.0-debian-12-r18"
-
-            # --- redis-exporter (Redis 监控指标) ---
-            ["bitnamilegacy/redis-exporter:1.58.0-debian-12-r14"]="redis-exporter:1.58.0-debian-12-r14"
+          # GitLab Helm Chart 8.0.0 - exact bitnami image tags from chart values
+          IMAGES=(
+            "bitnamilegacy/postgresql:15.3.0-debian-11-r0:postgresql:15.3.0-debian-11-r0"
+            "bitnamilegacy/bitnami-shell:11-debian-11-r115:bitnami-shell:11-debian-11-r115"
+            "bitnamilegacy/postgres-exporter:0.12.0-debian-11-r86:postgres-exporter:0.12.0-debian-11-r86"
+            "bitnamilegacy/redis:6.2.7-debian-11-r11:redis:6.2.7-debian-11-r11"
+            "bitnamilegacy/redis-sentinel:6.2.7-debian-11-r12:redis-sentinel:6.2.7-debian-11-r12"
+            "bitnamilegacy/redis-exporter:1.43.0-debian-11-r4:redis-exporter:1.43.0-debian-11-r4"
+            "bitnamilegacy/bitnami-shell:11-debian-11-r11:bitnami-shell:11-debian-11-r11"
           )
 
-          echo "=========================================="
-          echo "开始同步 ${#IMAGES[@]} 个镜像到 ACR"
-          echo "=========================================="
+          echo "=========================================="echo "=========================================="
+          echo "Syncing ${#IMAGES[@]} images to ACR"
+          echo "=========================================="echo "=========================================="
 
           FAILED=()
-          SUCCESS=0
+          SUCCESS=0   成功= 0
 
-          for SRC in "${!IMAGES[@]}"; do
-            DST_TAG="${IMAGES[$SRC]}"
-            DST="${ACR}:${DST_TAG}"
+          for ITEM in "${IMAGES[@]}"; do
+            SRC=$(echo "$ITEM" | cut -d: -f1-3)
+            DST_NAME=$(echo "$ITEM" | cut -d: -f4)
+            DST_TAG=$(echo "$ITEM" | cut -d: -f5-)
+            DST="${ACR}/${DST_NAME}:${DST_TAG}"
 
-            echo ""
-            echo ">>> 拉取: docker.io/${SRC}"
-            if docker pull "docker.io/${SRC}"; then
-              echo ">>> 打标签: ${DST}"
-              docker tag "docker.io/${SRC}" "${DST}"
-              echo ">>> 推送: ${DST}"
-              if docker push "${DST}"; then
-                echo ">>> ✅ 成功: ${SRC} -> ${DST}"
+            echo ""   echo ""
+            echo ">>> Pulling: docker.io/${SRC}"
+            if docker pull "docker.io/${SRC}"; then如果从“docker.io/${SRC}”拉取 Docker 镜像成功；那么
+              echo ">>> Tagging: ${DST}"
+              docker tag "docker.io/${SRC}" "${DST}"将“docker.io/${SRC}”标记为“${DST}”
+              echo ">>> Pushing: ${DST}"
+              if docker push "${DST}"; then如果成功执行 `docker push "${DST}"` 命令；那么
+                echo ">>> OK: ${SRC} -> ${DST}"
                 SUCCESS=$((SUCCESS + 1))
-              else
-                echo ">>> ❌ 推送失败: ${DST}"
-                FAILED+=("${SRC} (push failed)")
+              else   其他
+                echo ">>> FAIL push: ${DST}"
+                FAILED+=("${SRC}")
               fi
-            else
-              echo ">>> ❌ 拉取失败: ${SRC}"
-              FAILED+=("${SRC} (pull failed)")
+            else   其他
+              echo ">>> FAIL pull: ${SRC}"
+              FAILED+=("${SRC}")
             fi
-          done
+          done   完成
 
-          echo ""
-          echo "=========================================="
-          echo "同步完成: 成功 ${SUCCESS}, 失败 ${#FAILED[@]}"
-          if [ ${#FAILED[@]} -gt 0 ]; then
-            echo "失败的镜像:"
-            for f in "${FAILED[@]}"; do
-              echo "  - ${f}"
-            done
-            exit 1
+          echo ""   echo ""
+          echo "=========================================="echo "=========================================="
+          echo "Done: ${SUCCESS} ok, ${#FAILED[@]} failed"
+          if [ ${#FAILED[@]} -gt 0 ]; then如果 [ ${#FAILED[@]} -gt 0 ]； 那么
+            echo "Failed images:"
+            for f in "${FAILED[@]}"; do对于“${FAILED[@]}”中的每个 f ；做
+              echo "  - ${f}"Echo & " - ${f}& "；
+            done   完成
+            exit 1   出口1
           fi
-          echo "=========================================="
+          echo "=========================================="echo "=========================================="
