@@ -13,44 +13,37 @@ jobs:
           registry: crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
-      - name: Sync bitnami images from bitnamilegacy
+      - name: Pull and push images
         run: |
           set -e
-          ACR="crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab"
-          IMAGES=(
-            "bitnamilegacy/postgresql:15.3.0-debian-11-r0:postgresql:15.3.0-debian-11-r0"
-            "bitnamilegacy/bitnami-shell:11-debian-11-r115:bitnami-shell:11-debian-11-r115"
-            "bitnamilegacy/postgres-exporter:0.12.0-debian-11-r86:postgres-exporter:0.12.0-debian-11-r86"
-            "bitnamilegacy/redis:6.2.7-debian-11-r11:redis:6.2.7-debian-11-r11"
-            "bitnamilegacy/redis-sentinel:6.2.7-debian-11-r12:redis-sentinel:6.2.7-debian-11-r12"
-            "bitnamilegacy/redis-exporter:1.43.0-debian-11-r4:redis-exporter:1.43.0-debian-11-r4"
-            "bitnamilegacy/bitnami-shell:11-debian-11-r11:bitnami-shell:11-debian-11-r11"
-          )
-          echo "Syncing ${#IMAGES[@]} images to ACR"
-          FAILED=()
-          SUCCESS=0
-          for ITEM in "${IMAGES[@]}"; do
-            SRC=$(echo "$ITEM" | cut -d: -f1-3)
-            DST_NAME=$(echo "$ITEM" | cut -d: -f4)
-            DST_TAG=$(echo "$ITEM" | cut -d: -f5-)
-            DST="${ACR}/${DST_NAME}:${DST_TAG}"
-            echo ">>> Pulling: docker.io/${SRC}"
-            if docker pull "docker.io/${SRC}"; then
-              docker tag "docker.io/${SRC}" "${DST}"
-              echo ">>> Pushing: ${DST}"
-              if docker push "${DST}"; then
-                echo ">>> OK: ${SRC}"
-                SUCCESS=$((SUCCESS + 1))
-              else
-                FAILED+=("${SRC} push failed")
-              fi
-            else
-              FAILED+=("${SRC} pull failed")
-            fi
-          done
-          echo "Done: ${SUCCESS} ok, ${#FAILED[@]} failed"
-          if [ ${#FAILED[@]} -gt 0 ]; then
-            echo "Failed:"
-            for f in "${FAILED[@]}"; do echo "  - ${f}"; done
-            exit 1
-          fi
+          R="crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab"
+
+          docker pull docker.io/bitnamilegacy/postgresql:15.3.0-debian-11-r0
+          docker tag docker.io/bitnamilegacy/postgresql:15.3.0-debian-11-r0 $R/postgresql:15.3.0-debian-11-r0
+          docker push $R/postgresql:15.3.0-debian-11-r0
+
+          docker pull docker.io/bitnamilegacy/bitnami-shell:11-debian-11-r115
+          docker tag docker.io/bitnamilegacy/bitnami-shell:11-debian-11-r115 $R/bitnami-shell:11-debian-11-r115
+          docker push $R/bitnami-shell:11-debian-11-r115
+
+          docker pull docker.io/bitnamilegacy/postgres-exporter:0.12.0-debian-11-r86
+          docker tag docker.io/bitnamilegacy/postgres-exporter:0.12.0-debian-11-r86 $R/postgres-exporter:0.12.0-debian-11-r86
+          docker push $R/postgres-exporter:0.12.0-debian-11-r86
+
+          docker pull docker.io/bitnamilegacy/redis:6.2.7-debian-11-r11
+          docker tag docker.io/bitnamilegacy/redis:6.2.7-debian-11-r11 $R/redis:6.2.7-debian-11-r11
+          docker push $R/redis:6.2.7-debian-11-r11
+
+          docker pull docker.io/bitnamilegacy/redis-sentinel:6.2.7-debian-11-r12
+          docker tag docker.io/bitnamilegacy/redis-sentinel:6.2.7-debian-11-r12 $R/redis-sentinel:6.2.7-debian-11-r12
+          docker push $R/redis-sentinel:6.2.7-debian-11-r12
+
+          docker pull docker.io/bitnamilegacy/redis-exporter:1.43.0-debian-11-r4
+          docker tag docker.io/bitnamilegacy/redis-exporter:1.43.0-debian-11-r4 $R/redis-exporter:1.43.0-debian-11-r4
+          docker push $R/redis-exporter:1.43.0-debian-11-r4
+
+          docker pull docker.io/bitnamilegacy/bitnami-shell:11-debian-11-r11
+          docker tag docker.io/bitnamilegacy/bitnami-shell:11-debian-11-r11 $R/bitnami-shell:11-debian-11-r11
+          docker push $R/bitnami-shell:11-debian-11-r11
+
+          echo "All 7 images synced successfully"
