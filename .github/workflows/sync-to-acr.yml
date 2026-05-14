@@ -1,0 +1,33 @@
+name: Sync Docker Images to ACR
+
+on:
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Pull and push bitnami/postgresql
+        run: |
+          docker pull bitnami/postgresql:16.1.0-debian-12-r14
+          docker tag bitnami/postgresql:16.1.0-debian-12-r14 crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab/postgresql:16.1.0-debian-12-r14
+          docker push crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab/postgresql:16.1.0-debian-12-r14
+
+      - name: Pull and push bitnami/redis
+        run: |
+          docker pull bitnami/redis:7.2.4-debian-12-r8
+          docker tag bitnami/redis:7.2.4-debian-12-r8 crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab/redis:7.2.4-debian-12-r8
+          docker push crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab/redis:7.2.4-debian-12-r8
+
+      - name: Pull and push gitlab-ce
+        run: |
+          docker pull gitlab/gitlab-ce:16.8.0-ce.0
+          docker tag gitlab/gitlab-ce:16.8.0-ce.0 crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab/gitlab-ce:16.8.0-ce.0
+          docker push crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com/gitlab/gitlab-ce:16.8.0-ce.0
