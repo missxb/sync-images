@@ -13,7 +13,6 @@ jobs:
           registry: crpi-aux7x4ompgkgj165.cn-heyuan.personal.cr.aliyuncs.com
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
-
       - name: Sync bitnami images from bitnamilegacy
         run: |
           set -e
