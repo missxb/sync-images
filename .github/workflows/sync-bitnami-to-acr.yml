@@ -85,10 +85,9 @@ jobs:
           docker tag docker.io/jenkins/jenkins:2.440.1-lts $R/jenkins:2.440.1-lts
           docker push $R/jenkins:2.440.1-lts
 
-          docker pull docker.io/jenkins/inbound-agent:3261.v9a6a_5e9a_a_1ec
-          docker tag docker.io/jenkins/inbound-agent:3261.v9a6a_5e9a_a_1ec $R/jenkins-inbound-agent:3261.v9a6a_5e9a_a_1ec
-          docker push $R/jenkins-inbound-agent:3261.v9a6a_5e9a_a_1ec
-
+          docker pull docker.io/jenkins/inbound-agent:latest
+          docker tag docker.io/jenkins/inbound-agent:latest $R/jenkins-inbound-agent:latest
+          docker push $R/jenkins-inbound-agent:latest
           echo "=== Stage 6: CI/CD kaniko + kubectl ==="
 
           docker pull gcr.io/kaniko-project/executor:latest
