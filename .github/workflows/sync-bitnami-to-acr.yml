@@ -128,6 +128,10 @@ jobs:
 
           echo "=== Stage 9: HA MySQL + Redis ==="
 
+          docker pull docker.io/keepalived:2.0.20
+          docker tag docker.io/keepalived:2.0.20 $R/keepalived:2.0.20
+          docker push $R/keepalived:2.0.20
+
           docker pull docker.io/bitnamilegacy/mysql:8.4.0
           docker tag docker.io/bitnamilegacy/mysql:8.4.0 $R/mysql:8.4.0
           docker push $R/mysql:8.4.0
